@@ -1,0 +1,28 @@
+[Unit]
+Description=Plugcord Modular Discord Bot
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=plugcord
+Group=plugcord
+WorkingDirectory=/opt/plugcord
+EnvironmentFile=/opt/plugcord/.env
+ExecStart=/opt/plugcord/.venv/bin/python bot.py
+Restart=always
+RestartSec=10
+
+# Security and Sandboxing
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=plugcord
+
+[Install]
+WantedBy=multi-user.target

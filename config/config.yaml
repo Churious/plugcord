@@ -1,0 +1,19 @@
+discord:
+  prefix: "!"
+  owners: []
+
+modules:
+  auto_restore: true
+  directory: "modules"
+
+help:
+  hide_unavailable_commands: true
+
+logging:
+  level: "INFO"
+  file: "logs/plugcord.log"
+  max_bytes: 10485760
+  backup_count: 5
+
+database:
+  path: "data/plugcord.db"
