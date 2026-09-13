@@ -1,0 +1,7 @@
+{
+  "id": "webx",
+  "name": "webx",
+  "version": "1.0.0",
+  "description": "웹 문서/블로그를 Gemini로 분석하고 Notion에 정리합니다.",
+  "author": "Sihwan Lee"
+}
