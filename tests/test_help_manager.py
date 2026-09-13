@@ -90,6 +90,52 @@ async def test_help_manager_available_commands_filters_disabled_and_hidden(mock_
     assert "Disabled Mod" not in available
 
 
+@pytest.mark.asyncio
+async def test_help_manager_loads_module_help_md(mock_bot: PlugcordBot, temp_dir):
+    mod_dir = mock_bot.module_manager.modules_dir / "docmod"
+    mod_dir.mkdir(parents=True, exist_ok=True)
+    (mod_dir / "help.md").write_text("# Doc\n\nHello help.", encoding="utf-8")
+
+    mock_bot.module_manager._modules["docmod"] = ModuleRecord(
+        id="docmod",
+        path=mod_dir,
+        state=ModuleState.ENABLED,
+        manifest=ModuleManifest(id="docmod", name="Doc Mod", version="1.0", description="d"),
+    )
+
+    data = mock_bot.help_manager.get_module_help("docmod")
+    assert data is not None
+    assert "Hello help." in data["help_md"]
+
+    # Module without help.md returns empty string
+    mock_bot.module_manager._modules["nohelp"] = ModuleRecord(
+        id="nohelp",
+        path=mock_bot.module_manager.modules_dir / "nohelp",
+        state=ModuleState.ENABLED,
+        manifest=ModuleManifest(id="nohelp", name="No Help", version="1.0", description="d"),
+    )
+    no_help = mock_bot.help_manager.get_module_help("nohelp")
+    assert no_help is not None
+    assert no_help["help_md"] == ""
+
+
+def test_help_manager_chunk_message():
+    from core.help_manager import HelpManager
+
+    text = "\n".join(f"line {i}" for i in range(500))
+    chunks = HelpManager.chunk_message(text, limit=500)
+    assert len(chunks) > 1
+    assert all(len(c) <= 500 for c in chunks)
+    assert "".join(chunks) == text
+
+    long_line = "x" * 2500
+    chunks = HelpManager.chunk_message(long_line, limit=1000)
+    assert len(chunks) == 3
+    assert "".join(chunks) == long_line
+
+    assert HelpManager.chunk_message("") == []
+
+
 def test_help_manager_search(mock_bot: PlugcordBot):
     mock_bot.command_registry.register(
         CommandInfo(name="docker", description="Docker container management", category="DevOps"),

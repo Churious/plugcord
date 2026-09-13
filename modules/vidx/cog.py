@@ -12,9 +12,8 @@ from discord.ext import commands
 
 from core.models.command import CommandInfo, command_meta
 from core.permission_manager import require_admin
-
 from modules.vidx.analyzer import analyze_video
-from modules.vidx.exceptions import AnalysisError, NotionError, VideoExtractionError, VidxError
+from modules.vidx.exceptions import NotionError, VidxError
 from modules.vidx.models import VideoAnalysis
 from modules.vidx.notion import create_page
 from modules.vidx.youtube import extract_video_id, fetch_video_data

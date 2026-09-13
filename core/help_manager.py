@@ -45,6 +45,22 @@ class HelpManager:
             "hidden": cmd_info.hidden,
         }
 
+    def _load_module_help_md(self, record: Any) -> str:
+        """Loads optional rich help documentation from modules/<id>/help.md.
+
+        This is a generic Core convention: any module may ship a help.md.
+        """
+        try:
+            help_path = record.path / "help.md"
+        except Exception:
+            return ""
+        if not help_path.is_file():
+            return ""
+        try:
+            return help_path.read_text(encoding="utf-8").strip()
+        except Exception:
+            return ""
+
     def get_module_help(self, module_id_or_name: str) -> dict[str, Any] | None:
         """Retrieves structured help data for a module and its registered commands."""
         record = self.bot.module_manager.get_module(module_id_or_name)
@@ -68,7 +84,31 @@ class HelpManager:
             "author": record.author,
             "state": str(record.state),
             "commands": cmd_names,
+            "help_md": self._load_module_help_md(record),
         }
+
+    @staticmethod
+    def chunk_message(text: str, limit: int = 1900) -> list[str]:
+        """Splits text into Discord-safe chunks, preserving line boundaries."""
+        if not text:
+            return []
+        chunks: list[str] = []
+        current = ""
+        for line in text.splitlines(keepends=True):
+            while len(line) > limit:
+                if current:
+                    chunks.append(current)
+                    current = ""
+                chunks.append(line[:limit])
+                line = line[limit:]
+            if len(current) + len(line) > limit:
+                chunks.append(current)
+                current = line
+            else:
+                current += line
+        if current:
+            chunks.append(current)
+        return chunks
 
     async def get_available_commands(
         self,

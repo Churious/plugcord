@@ -143,6 +143,17 @@ class PlugcordBot(commands.Bot):
                 await ctx.send("\n".join(lines))
                 return
 
+            if parts[0].lower() == "module" and len(parts) > 1:
+                module_query = parts[1].strip()
+                mod_data = self.help_manager.get_module_help(module_query)
+                if mod_data is None:
+                    await ctx.send(f"Module '{module_query}' not found.")
+                    return
+                await ctx.send(self.help_manager.format_module_detail(mod_data))
+                for chunk in self.help_manager.chunk_message(mod_data.get("help_md", "")):
+                    await ctx.send(chunk)
+                return
+
             query = target.strip()
             cmd_data = self.help_manager.get_command_help(query)
             if cmd_data:
@@ -152,6 +163,8 @@ class PlugcordBot(commands.Bot):
             mod_data = self.help_manager.get_module_help(query)
             if mod_data:
                 await ctx.send(self.help_manager.format_module_detail(mod_data))
+                for chunk in self.help_manager.chunk_message(mod_data.get("help_md", "")):
+                    await ctx.send(chunk)
                 return
 
             await ctx.send(
@@ -165,7 +178,12 @@ class PlugcordBot(commands.Bot):
                 description="Displays help information for commands or modules.",
                 usage="help [command|module|search <query>]",
                 aliases=["commands"],
-                examples=["help", "help server", "help monitoring", "help search server"],
+                examples=[
+                    "help",
+                    "help vidx",
+                    "help module vidx",
+                    "help search server",
+                ],
                 category="Core",
                 permissions=[],
                 hidden=False,

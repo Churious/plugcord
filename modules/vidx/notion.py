@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 from datetime import UTC, datetime
@@ -11,7 +10,7 @@ from typing import Any
 import aiohttp
 
 from modules.vidx.exceptions import NotionError
-from modules.vidx.models import TimelineItem, ToolInfo, VideoAnalysis
+from modules.vidx.models import VideoAnalysis
 
 logger = logging.getLogger("plugcord.vidx.notion")
 
