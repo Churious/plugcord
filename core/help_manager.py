@@ -84,6 +84,11 @@ class HelpManager:
             "author": record.author,
             "state": str(record.state),
             "commands": cmd_names,
+            "command_details": [
+                {"name": c.name, "usage": c.usage or c.name, "description": c.description}
+                for c in commands
+                if not c.hidden
+            ],
             "help_md": self._load_module_help_md(record),
         }
 
@@ -229,6 +234,24 @@ class HelpManager:
             data["module"],
             "```",
         ])
+        return "\n".join(lines)
+
+    def format_module_usage(self, data: dict[str, Any], prefix: str) -> str:
+        """Formats a compact usage-only summary for a module."""
+        lines = [
+            "```text",
+            f"{data['name']} v{data['version']}",
+            "",
+        ]
+        details = data.get("command_details", [])
+        if details:
+            for c in details:
+                lines.append(f"{prefix}{c.get('usage') or c.get('name', '')}")
+        else:
+            lines.append("No commands")
+        lines.append("")
+        lines.append(f"{prefix}help module {data['id']} full  (자세히)")
+        lines.append("```")
         return "\n".join(lines)
 
     def format_module_detail(self, data: dict[str, Any]) -> str:

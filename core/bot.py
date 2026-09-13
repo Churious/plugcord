@@ -129,9 +129,11 @@ class PlugcordBot(commands.Bot):
                 await ctx.send(msg)
                 return
 
-            parts = target.strip().split(maxsplit=1)
-            if parts[0].lower() == "search" and len(parts) > 1:
-                keyword = parts[1]
+            raw_target = target.strip()
+            tokens = raw_target.split()
+
+            if tokens and tokens[0].lower() == "search" and len(tokens) > 1:
+                keyword = raw_target[len("search"):].strip()
                 matches = self.help_manager.search_help(keyword)
                 if not matches:
                     await ctx.send(f"No commands found matching '{keyword}'.")
@@ -143,18 +145,22 @@ class PlugcordBot(commands.Bot):
                 await ctx.send("\n".join(lines))
                 return
 
-            if parts[0].lower() == "module" and len(parts) > 1:
-                module_query = parts[1].strip()
+            if tokens and tokens[0].lower() == "module" and len(tokens) > 1:
+                module_query = tokens[1]
+                show_full = len(tokens) > 2 and tokens[2].lower() in ("full", "detail")
                 mod_data = self.help_manager.get_module_help(module_query)
                 if mod_data is None:
                     await ctx.send(f"Module '{module_query}' not found.")
                     return
-                await ctx.send(self.help_manager.format_module_detail(mod_data))
-                for chunk in self.help_manager.chunk_message(mod_data.get("help_md", "")):
-                    await ctx.send(chunk)
+                if show_full:
+                    await ctx.send(self.help_manager.format_module_detail(mod_data))
+                    for chunk in self.help_manager.chunk_message(mod_data.get("help_md", "")):
+                        await ctx.send(chunk)
+                else:
+                    await ctx.send(self.help_manager.format_module_usage(mod_data, prefix))
                 return
 
-            query = target.strip()
+            query = raw_target
             cmd_data = self.help_manager.get_command_help(query)
             if cmd_data:
                 await ctx.send(self.help_manager.format_command_detail(cmd_data, prefix))
@@ -162,9 +168,7 @@ class PlugcordBot(commands.Bot):
 
             mod_data = self.help_manager.get_module_help(query)
             if mod_data:
-                await ctx.send(self.help_manager.format_module_detail(mod_data))
-                for chunk in self.help_manager.chunk_message(mod_data.get("help_md", "")):
-                    await ctx.send(chunk)
+                await ctx.send(self.help_manager.format_module_usage(mod_data, prefix))
                 return
 
             await ctx.send(
@@ -182,6 +186,7 @@ class PlugcordBot(commands.Bot):
                     "help",
                     "help vidx",
                     "help module vidx",
+                    "help module vidx full",
                     "help search server",
                 ],
                 category="Core",

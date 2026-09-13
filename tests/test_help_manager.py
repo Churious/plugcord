@@ -61,6 +61,11 @@ async def test_help_manager_command_and_module_details(mock_bot: PlugcordBot):
     assert "Server Monitoring" in formatted_mod
     assert "- server" in formatted_mod
 
+    formatted_usage = mock_bot.help_manager.format_module_usage(mod_data, prefix="!")
+    assert "Server Monitoring v1.2.0" in formatted_usage
+    assert "!server [type]" in formatted_usage
+    assert "help module monitoring full" in formatted_usage
+
 
 @pytest.mark.asyncio
 async def test_help_manager_available_commands_filters_disabled_and_hidden(mock_bot: PlugcordBot):
