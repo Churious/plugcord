@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from dotenv import load_dotenv
+
 from core.exceptions import CommandConflictError, ModuleLoadError, ModuleUnloadError
 from core.models.command import CommandInfo
 
@@ -38,6 +40,11 @@ class ModuleLoader:
             raise ModuleLoadError(module_id, f"Entrypoint cog.py not found in {module_path}")
 
         extension_name = self._get_extension_name(module_id, modules_dir)
+
+        env_path = module_path / ".env"
+        if env_path.is_file():
+            load_dotenv(dotenv_path=env_path, override=True)
+            logger.info(f"Loaded module-specific environment: {env_path}")
 
         pre_cogs = set(self.bot.cogs.keys())
 

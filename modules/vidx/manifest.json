@@ -1,0 +1,7 @@
+{
+  "id": "vidx",
+  "name": "vidx",
+  "version": "1.0.0",
+  "description": "YouTube 영상을 Gemini로 분석하고 Notion에 정리합니다.",
+  "author": "Sihwan Lee"
+}

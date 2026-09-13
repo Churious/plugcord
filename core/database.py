@@ -46,6 +46,76 @@ class Database:
             finally:
                 self._conn = None
 
+    @property
+    def connection(self) -> aiosqlite.Connection:
+        """Returns the active aiosqlite connection."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        return self._conn
+
+    async def execute(self, query: str, parameters: Any = ()) -> aiosqlite.Cursor:
+        """Executes a SQL statement with parameters."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            return await self._conn.execute(query, parameters)
+        except Exception as e:
+            logger.error(f"Database execute error: {e} | Query: {query}")
+            raise DatabaseError(f"Database execute failed: {e}") from e
+
+    async def executemany(self, query: str, seq_of_parameters: Any) -> aiosqlite.Cursor:
+        """Executes a SQL statement against all parameter sequences."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            return await self._conn.executemany(query, seq_of_parameters)
+        except Exception as e:
+            logger.error(f"Database executemany error: {e} | Query: {query}")
+            raise DatabaseError(f"Database executemany failed: {e}") from e
+
+    async def executescript(self, sql_script: str) -> aiosqlite.Cursor:
+        """Executes multiple SQL statements provided as a script."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            return await self._conn.executescript(sql_script)
+        except Exception as e:
+            logger.error(f"Database executescript error: {e}")
+            raise DatabaseError(f"Database executescript failed: {e}") from e
+
+    async def commit(self) -> None:
+        """Commits the current transaction."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            await self._conn.commit()
+        except Exception as e:
+            logger.error(f"Database commit error: {e}")
+            raise DatabaseError(f"Database commit failed: {e}") from e
+
+    async def fetchone(self, query: str, parameters: Any = ()) -> aiosqlite.Row | None:
+        """Executes query and fetches the first resulting row."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            async with self._conn.execute(query, parameters) as cursor:
+                return await cursor.fetchone()
+        except Exception as e:
+            logger.error(f"Database fetchone error: {e} | Query: {query}")
+            raise DatabaseError(f"Database fetchone failed: {e}") from e
+
+    async def fetchall(self, query: str, parameters: Any = ()) -> list[aiosqlite.Row]:
+        """Executes query and fetches all resulting rows."""
+        if self._conn is None:
+            raise DatabaseError("Database is not connected.")
+        try:
+            async with self._conn.execute(query, parameters) as cursor:
+                rows = await cursor.fetchall()
+                return list(rows)
+        except Exception as e:
+            logger.error(f"Database fetchall error: {e} | Query: {query}")
+            raise DatabaseError(f"Database fetchall failed: {e}") from e
+
     async def _init_tables(self) -> None:
         """Initializes tables and schema migrations."""
         if self._conn is None:
